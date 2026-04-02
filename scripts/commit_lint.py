@@ -23,6 +23,22 @@ TYPES = (
 
 
 def format_text(text: str, format_type: str) -> str:
+    """
+    Format text with ANSI escape codes for terminal output.
+
+    Parameters
+    ----------
+    text : str
+        The text to format.
+    format_type : str
+        One of 'bold', 'yellow', 'yellow_bold'.
+
+    Returns
+    -------
+    str
+        Text wrapped with ANSI escape codes, or an error message if
+        format_type is unknown.
+    """
     format_start = {"bold": "\033[1m", "yellow": "\033[33m", "yellow_bold": "\033[1;33m"}
     format_end = "\033[0m"
     if format_type not in format_start:
@@ -30,7 +46,17 @@ def format_text(text: str, format_type: str) -> str:
     return f"{format_start[format_type]}{text}{format_end}"
 
 
-def read_commit_message():
+def read_commit_message() -> str | None:
+    """
+    Read the commit message from the first available source.
+
+    Attempts sources in order: COMMIT_EDITMSG file, stdin, file arguments.
+
+    Returns
+    -------
+    str or None
+        The commit message string, or None if no source was found.
+    """
     commit_editmsg = os.path.join(os.getcwd(), ".git", "COMMIT_EDITMSG")
     if os.path.exists(commit_editmsg):
         with open(commit_editmsg, "r", encoding="utf-8") as f:
@@ -49,6 +75,14 @@ def read_commit_message():
 
 
 def log_commit_error(specific_error: str) -> None:
+    """
+    Print a formatted commit message error with examples.
+
+    Parameters
+    ----------
+    specific_error : str
+        The specific validation error to display.
+    """
     commit_msg_format = format_text(COMMIT_MESSAGE_FORMAT, "yellow_bold")
     print(
         f"Error: {specific_error}\n"
@@ -66,6 +100,14 @@ def log_commit_error(specific_error: str) -> None:
 
 
 def log_branch_error(branch: str) -> None:
+    """
+    Print a formatted branch name error with examples.
+
+    Parameters
+    ----------
+    branch : str
+        The invalid branch name that triggered the error.
+    """
     types = "|".join(TYPES)
     print(
         f"Error: Branch '{format_text(branch, 'yellow_bold')}' does not follow naming convention.\n"
@@ -81,6 +123,30 @@ def log_branch_error(branch: str) -> None:
 
 
 def check_commit_message(commit_msg: str) -> bool:
+    """
+    Validate a commit message against the Conventional Commits format.
+
+    Parameters
+    ----------
+    commit_msg : str
+        The full commit message to validate.
+
+    Returns
+    -------
+    bool
+        True if the message is valid, False otherwise.
+
+    Notes
+    -----
+    Valid format: <type>[optional scope]: [TICKET-NUMBER - ]<description>
+
+    Examples
+    --------
+    Valid:
+        feat: DATA-299 - add paynext staging model
+        fix(primer): resolve webhook payment_id extraction
+        chore: update dbt dependencies
+    """
     if not commit_msg:
         log_commit_error("Empty commit message received.")
         return False
@@ -115,6 +181,31 @@ def check_commit_message(commit_msg: str) -> bool:
 
 
 def check_branch_name(branch: str) -> bool:
+    """
+    Validate a branch name against the project naming convention.
+
+    Parameters
+    ----------
+    branch : str
+        The branch name to validate.
+
+    Returns
+    -------
+    bool
+        True if the branch name is valid or is a system branch, False otherwise.
+
+    Notes
+    -----
+    System branches (main, master, develop, HEAD) are always considered valid.
+    All other branches must follow: <type>/description or <type>-description.
+
+    Examples
+    --------
+    Valid:
+        feat/DATA-299-paynext-staging
+        fix/DATA-123-primer-webhook
+        chore/update-dbt-deps
+    """
     if branch in ("main", "master", "develop", "HEAD"):
         return True
 
@@ -128,6 +219,12 @@ def check_branch_name(branch: str) -> bool:
 
 
 def main() -> None:
+    """
+    Entry point for the commit linter.
+
+    Runs branch name validation when --branch flag is passed,
+    otherwise validates the commit message.
+    """
     if "--branch" in sys.argv:
         idx = sys.argv.index("--branch")
         branch = sys.argv[idx + 1] if idx + 1 < len(sys.argv) else None

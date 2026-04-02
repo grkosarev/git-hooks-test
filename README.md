@@ -11,10 +11,10 @@ make init
 ## What's being checked
 
 **Branch names** (`post-checkout`):
-- Must start with: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+- Must start with: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `revert`
 - Format: `<type>/description` or `<type>-description`
-- Examples: `feat/add-login`, `fix/KAN-123-memory-leak`
+- Examples: `feat/DATA-299-paynext-staging`, `fix/DATA-123-primer-webhook`, `chore/update-dbt-deps`
 
 **Commit messages** (`commit-msg`):
 - Format: `<type>[optional scope]: [TICKET-NUMBER - ]<description>`
-- Examples: `feat: add login`, `fix(auth): KAN-123 - resolve token expiry`
+- Examples: `feat: DATA-299 - add paynext staging model`, `fix(primer): resolve webhook payment_id extraction`

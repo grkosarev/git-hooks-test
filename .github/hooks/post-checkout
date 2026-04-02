@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# $1 = previous HEAD, $2 = new HEAD, $3 = 1 if branch checkout
+[[ "$3" != "1" ]] && exit 0
+
+# Skip on initial commit (no previous branch)
+[[ "$1" == "0000000000000000000000000000000000000000" ]] && exit 0
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+python3 scripts/commit_lint.py --branch "$BRANCH"
+if [[ $? -ne 0 ]]; then
+    PREV_BRANCH=$(git name-rev --name-only "$1" 2>/dev/null | sed 's/~.*//')
+    git checkout -q $PREV_BRANCH
+    git branch -qD "$BRANCH"
+    echo "You were returned back to $PREV_BRANCH"
+    exit 1
+fi
